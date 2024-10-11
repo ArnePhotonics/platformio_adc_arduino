@@ -1,0 +1,3 @@
+#define GITHASH 0xddb1507 
+#define GITDATE "2020-01-20" 
+#define GITUNIX 1579543462
