@@ -2,9 +2,12 @@
 
 #include <Arduino.h>
 
-
+#include <Wire.h>
+#include <MCP342x.h>
 
 #include "main.h"
+#include <LTC2633.h>
+
 
 
 
@@ -14,6 +17,11 @@
 #include "rpc_transmission/client/generated_app/RPC_TRANSMISSION_mcu2qt.h"
 #include "vc.h"
 // clang-format on
+
+const uint8_t addres_MCP342xs = 0x6E;
+MCP342x adc = MCP342x(addres_MCP342xs);
+
+LTC2633 myDAC;
 
 #define CHANNEL_CODEC_TX_BUFFER_SIZE 64
 #define CHANNEL_CODEC_RX_BUFFER_SIZE 64
@@ -148,6 +156,20 @@ void setup() {
                         cc_txBuffers[channel_codec_comport_transmission],
                         CHANNEL_CODEC_TX_BUFFER_SIZE);
 
+#if 0
+  Serial.print("hello\n");
+  MCP342x::generalCallReset();
+  delay(1);  // MC342x needs 300us to settle, wait 1ms
+
+  // Check device present
+  Wire.requestFrom(addres_MCP342xs, (uint8_t)1);
+  if (!Wire.available()) {
+    Serial.print("No device found at address ");
+    Serial.println(addres_MCP342xs, HEX);
+    while (1)
+      ;
+  }
+#endif
 #if 1
   while (!Serial) {
     ;  // wait for serial port to connect. Needed for native USB port only
@@ -158,5 +180,23 @@ void setup() {
 void loop() {
   while (1) {
     xSerialToRPC();
+
+#if 0
+    long value = 0;
+    MCP342x::Config status;
+    // Initiate a conversion; convertAndRead() will wait until it can be read
+    uint8_t err = adc.convertAndRead(MCP342x::channel1, MCP342x::oneShot,
+                                     MCP342x::resolution16, MCP342x::gain1,
+                                     1000000, value, status);
+    if (err) {
+      Serial.print("Convert error: ");
+      Serial.println(err);
+    } else {
+      Serial.print("Value: ");
+      Serial.println(value);
+    }
+
+    delay(1000);
+#endif
   }
 }
